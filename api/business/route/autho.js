@@ -35,5 +35,11 @@ router.route('/currentaccount').get(function(req,res){
 })
 
 
+router.route('/updatepassword').put(function(req,res){
+
+    handler.updatePassword(req,res);
+})
+
+
 
 module.exports = router;

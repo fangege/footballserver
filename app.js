@@ -47,10 +47,6 @@ app.use('/tool/refresh',async function(req,res){
     return res.json({code:-1,message:"refresh error"});
   }
 
-
-
-
-
   async function loadGlobalHtmlTask() {
     global.optHtml = await loadHtml(ENUMS.OptPath);
     global.businessHtml = await loadHtml(ENUMS.BusinessPath);

@@ -86,15 +86,33 @@ async function getOrderList(req, res) {
         form.no = '';
     }
 
-    try {
-        page = parseInt(form.page);
-        if (isNaN(page)) {
+    if (form.currentPage != undefined) {
+        try {
+            page = parseInt(form.currentPage);
+            if (isNaN(page)) {
+                page = 1;
+            }
+
+        } catch (err) {
+            page = 1;
+        }
+    }
+
+
+
+    if (form.page != undefined) {
+        try {
+            page = parseInt(form.page);
+            if (isNaN(page)) {
+                page = 1;
+            }
+
+        } catch (err) {
             page = 1;
         }
 
-    } catch (err) {
-        page = 1;
     }
+
 
     if (!form.query) {
         form.query = "";
@@ -134,7 +152,7 @@ async function getOrderList(req, res) {
 
         whereParams.push((page - 1) * 10);
 
-        results = await conn.queryAsync("select content,odds / 100 as odds,whitchparty,outcome,makemoney,clientid,orderid,createtime,amount,status from t_order " + whereSql + " order by createtime desc limit ?,10 ", whereParams)
+        results = await conn.queryAsync("select remark, content,odds / 100 as odds,whitchparty,outcome,makemoney,clientid,orderid,createtime,amount,status from t_order " + whereSql + " order by createtime desc limit ?,10 ", whereParams)
 
     } catch (err) {
         console.error(err);
@@ -168,7 +186,7 @@ async function createOrder(req, res) {
     let form = req.body;
 
     //check
-    if (!form.amount ||  !form.odds || !form.content || !form.whitchparty) {
+    if (!form.amount || !form.odds || !form.content || !form.whitchparty) {
 
         return paramInvalid(req, res);
     }
@@ -184,10 +202,10 @@ async function createOrder(req, res) {
         let content = form.content;
         let whitchparty = form.whitchparty;
         let odds = parseInt(form.odds * 100);
-        if(isNaN(odds)){
-            return failedResponse(req,res,{
-                code:-1,
-                message:"赔率非法"
+        if (isNaN(odds)) {
+            return failedResponse(req, res, {
+                code: -1,
+                message: "赔率非法"
             });
         }
 
@@ -325,7 +343,7 @@ async function getPaymentList(req, res) {
 async function confirmOrder(req, res) {
 
 
-  
+
     let form = req.body;
 
     let action = form.action;
@@ -341,7 +359,7 @@ async function confirmOrder(req, res) {
         return paramInvalid(req, res);
     }
 
-    if(action !="confirm" && action !="cancle"){
+    if (action != "confirm" && action != "cancle") {
 
         return paramInvalid(req, res);
     }
@@ -362,13 +380,13 @@ async function confirmOrder(req, res) {
         //用户确认了订单
 
 
-        if(action=="confirm"){
+        if (action == "confirm") {
             await conn.queryAsync("update t_order set status=? where orderid=?", [ENUMS.OrderStatus.Pending, orderid]);
-        }else{
+        } else {
             await conn.queryAsync("update t_order set status=? where orderid=?", [ENUMS.OrderStatus.Canceled, orderid]);
         }
 
-       
+
 
     } catch (err) {
         console.error(err);

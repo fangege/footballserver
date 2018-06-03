@@ -205,9 +205,51 @@ async function getCurrentAccount(req, res) {
     })
 }
 
+async function updatePassword(req,res){
+
+    let form = req.body;
+
+    let conn = null;
+    let expires_time = "";
+
+    let result = null;
+    try {
+        conn = await gDataBases["db_business"].getConnection();
+        result = await conn.queryAsync("select * from t_client where clientid=? and password=?", [req.authData.clientid,form.oldpassword]);
+
+        if (result.length == 0) {
+            return res.json({
+                "code": 611,
+                "message": "旧密码错误",
+            });
+        }
+
+        await conn.queryAsync("update t_client set password=? where clientid=? and password=?", [form.newpassword,req.authData.clientid,form.oldpassword]);
+    } catch (err) {
+        console.error(err);
+        return res.status(404).json({
+            'code': ENUMS.ErrCode.EC_DATABASE_ERROR,
+            'message': '服务器错误'
+        });
+    } finally {
+        if (conn != null) {
+            conn.release();
+        }
+    }
+
+    res.status(200).json({
+        code: ENUMS.ErrCode.Success,
+        message: ENUMS.ErrCodeMessage.Success
+    })
+
+
+
+}
+
 
 module.exports = {
     login,
     logout,
-    getCurrentAccount
+    getCurrentAccount,
+    updatePassword
 }

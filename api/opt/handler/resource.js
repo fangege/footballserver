@@ -561,15 +561,36 @@ async function getOrderList(req, res) {
         form.no = '';
     }
 
-    try {
-        page = parseInt(form.currentPage);
-        if (isNaN(page)) {
+
+    if(form.currentPage!=undefined){
+        try {
+            page = parseInt(form.currentPage);
+            if (isNaN(page)) {
+                page = 1;
+            }
+    
+        } catch (err) {
+            page = 1;
+        }
+    }
+  
+
+
+    if(form.page!=undefined){
+        try {
+            page = parseInt(form.page);
+            if (isNaN(page)) {
+                page = 1;
+            }
+    
+        } catch (err) {
             page = 1;
         }
 
-    } catch (err) {
-        page = 1;
     }
+  
+
+    
 
     if (!form.query) {
         form.query = "";
@@ -624,7 +645,7 @@ async function getOrderList(req, res) {
 
         whereParams.push((page - 1) * 10);
 
-        results = await conn.queryAsync("select a.makemoney,a.outcome,b.accountid,a.clientid,a.orderid,a.createtime,a.amount,a.odds / 100 as odds ,a.content,a.whitchparty,a.status from t_order a left join t_client b on a.clientid=b.clientid  " + whereSql + " order by a.createtime desc limit ?,10 ", whereParams)
+        results = await conn.queryAsync("select a.remark,a.makemoney,a.outcome,b.accountid,a.clientid,a.orderid,a.createtime,a.amount,a.odds / 100 as odds ,a.content,a.whitchparty,a.status from t_order a left join t_client b on a.clientid=b.clientid  " + whereSql + " order by a.createtime desc limit ?,10 ", whereParams)
 
 
     } catch (err) {
@@ -936,7 +957,11 @@ async function auditOrder(req, res) {
         }
 
         if (action === "reject") {
-            await conn.queryAsync("update t_order set status=? where orderid=? and status=?", [ENUMS.OrderStatus.Rejected, orderid, ENUMS.OrderStatus.Pending])
+
+            if(!form.remark){
+                form.remark = "";
+            }
+            await conn.queryAsync("update t_order set status=?,remark=? where orderid=? and status=?", [ENUMS.OrderStatus.Rejected,form.remark, orderid, ENUMS.OrderStatus.Pending])
         }
 
         if (action === "pass") {
