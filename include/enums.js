@@ -6,7 +6,7 @@ const ENUM = {
 
     MaxOdds: 100,
 
-    BusinessPath:"https://business-1252878496.cos.ap-chengdu.myqcloud.com/business.html",
+    BusinessPath:"https://static-1255551836.cos.ap-chengdu.myqcloud.com/business.html",
     OptPath:"https://s3-ap-southeast-1.amazonaws.com/aws-business-static/resource/opt.html",
     
     ErrCode: {
@@ -65,7 +65,8 @@ const ENUM = {
         Rechage:1,
         Consume:2,
         MakeMoney:3,
-        WithDraw:4
+        WithDraw:4,
+        RollBack:5
     }
 }
 

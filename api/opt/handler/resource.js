@@ -314,7 +314,7 @@ async function rechage(req, res) {
 }
 
 
-//充值
+//提款
 async function withDraw(req, res) {
 
     if (req.authData.type != ENUMS.AccoutType.Admin && req.authData.type != ENUMS.AccoutType.Finance) {
@@ -343,6 +343,52 @@ async function withDraw(req, res) {
 }
 
 
+
+//回滚订单
+async function reqRollBackOrder(req,res){
+
+    if (req.authData.type != ENUMS.AccoutType.Admin) {
+        return permissionDeny(req, res);
+    }
+    let form = req.body;
+
+
+
+    let orderid = form.orderid;
+
+    if (!orderid) {
+
+        return paramInvalid(req, res);
+    }
+
+    let conn = null;
+    let results = null;
+  
+    try {
+
+        await rollBackOrder(orderid);
+
+        await writeLog({
+            accountid:req.authData.accountid,
+            remark:"rollback order: "+orderid
+        })
+
+    } catch (err) {
+        console.error(err);
+
+        if (err && err.message) {
+            return failedResponse(req, res, err)
+        } else {
+            return serverError(req, res);
+        }
+    } finally {
+        if (conn != null) {
+            conn.release();
+        }
+    }
+    return successResponse(req, res);
+
+}
 
 
 
@@ -760,7 +806,7 @@ async function createOrder(req, res) {
 
         results = await conn.queryAsync("select * from t_order where clientid=? and status=?", [clientid, ENUMS.OrderStatus.Pending]);
 
-        if (results.length > 3) {
+        if (results.length > 5) {
             return failedResponse(req, res, {
                 code: ENUMS.ErrCode.Failed,
                 message: "待审核订单超过三个"
@@ -1139,6 +1185,71 @@ async function getLogList(req, res) {
 }
 
 
+async function rollBackOrder(orderid){
+
+    let conn = null;
+    let result = null;
+    try {
+        conn = await gDataBases["db_business"].getConnection();
+        await conn.beginTransaction();
+
+        results = await conn.queryAsync("select * from t_order where orderid=? and status=?", [orderid, ENUMS.OrderStatus.Finished]);
+
+        if (results.length == 0) {
+            throw { message: "订单不存在或者未结算" }
+        }
+
+        let order = results[0];
+        let clientid = order.clientid;
+
+        let makeMoney = order.makemoney;
+       
+
+        results = await conn.queryAsync("select balance from t_client where clientid=?", [clientid]);
+        if (results.length == 0) {
+            throw { code: -1, message: "no such clientid:" + clientid }
+        }
+        let balance = results[0].balance;
+        let remark = "rollback order:" + orderid;
+        let amount = makeMoney * (-1);
+
+
+        console.log(balance,amount,balance+amount)
+        if (makeMoney > 0) {
+            await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [amount, clientid])
+            let payment = {
+                clientid,
+                amount,
+                balance: balance + amount,
+                remark,
+                opt:ENUMS.PaymentOptType.RollBack,
+                createtime: moment().format('YYYY-MM-DD HH:mm:ss')
+            }
+
+            console.log(payment);
+
+            await conn.queryAsync("insert into t_payment set ? ", [payment])
+
+        }
+        await conn.queryAsync("update t_order set outcome=? , makemoney=? , status=? where orderid=?", [0, 0, ENUMS.OrderStatus.Pass,orderid]);
+        await conn.commit();
+
+    } catch (err) {
+        console.error(err);
+        if (conn) {
+            await conn.rollback();
+        }
+        throw err;
+    } finally {
+        if (conn != null) {
+            conn.release();
+        }
+    }
+
+    
+}
+
+
 
 async function finishUserOrder(orderid, outcome) {
    
@@ -1187,7 +1298,7 @@ async function finishUserOrder(orderid, outcome) {
         let amount = order.amount;
 
         if (makeMoney > 0) {
-            await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [order.amount, clientid])
+            await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [makeMoney, clientid])
             let payment = {
                 clientid,
                 amount:makeMoney,
@@ -1384,7 +1495,7 @@ async function enableAccount(req,res){
             throw { code: -1, message: "no such accountid:" + accountid }
         }
 
-        if(results[0].type == ENUMS.AccoutType.Admin){
+        if(accountid == req.authData.accountid){
             throw { code: -1, message: "无法操作管理员"  }
         }
 
@@ -1418,6 +1529,76 @@ async function enableAccount(req,res){
 
 
 
+async function enableClient(req,res){
+
+
+    if (req.authData.type != ENUMS.AccoutType.Admin) {
+
+        return permissionDeny(req, res);
+    }
+
+    let form = req.body;
+
+
+    let clientid = form.clientid;
+
+    let status = form.status;
+
+    if (!clientid | status == undefined) {
+
+        return paramInvalid(req, res);
+    }
+
+    //1 驳回  2 提交成功
+
+
+    let conn = null;
+    let results = null;
+
+ 
+    let total = 0;
+    try {
+
+
+        conn = await gDataBases["db_business"].getConnection();
+
+
+        results = await conn.queryAsync("select * from t_client where clientid=?",[clientid]);
+        if(results.length==0){
+            throw { code: -1, message: "no such clientid:" + clientid }
+        }
+
+        if(status==0){
+
+            await conn.queryAsync("update t_client set status=1 where clientid=?", [clientid])
+        }else{
+            await conn.queryAsync("update t_client set status=0 where clientid=?", [clientid])
+        }
+
+        await writeLog({
+            accountid:req.authData.accountid,
+            remark:`enable clientid + ${status?"disble":"enable"} + : + ${clientid}`
+        });
+
+    } catch (err) {
+        console.error(err);
+        if (err && err.message) {
+            return failedResponse(req, res, err)
+        } else {
+            return serverError(req, res);
+        }
+
+    } finally {
+        if (conn != null) {
+            conn.release();
+        }
+    }
+    return successResponse(req, res);
+}
+
+
+
+
 async function writeLog(param){
 
 
@@ -1436,10 +1617,6 @@ async function writeLog(param){
     }
 
     try {
-
-    console.log(item);
-
-
         conn = await gDataBases["db_business"].getConnection();
         results = await conn.queryAsync("select * from t_account where accountid=? and status=1",[param.accountid]);
 
@@ -1497,6 +1674,8 @@ module.exports = {
 
     finishOrder,
 
-    enableAccount
+    enableAccount,
+    enableClient,
+    reqRollBackOrder
 
 }

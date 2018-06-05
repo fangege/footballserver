@@ -225,7 +225,7 @@ async function createOrder(req, res) {
         conn = await gDataBases["db_business"].getConnection();
 
 
-        //检查client是否存在，检查待审核订单数是否超过3
+       
 
 
         results = await conn.queryAsync("select * from t_client where clientid=?", [item.clientid]);
@@ -244,9 +244,9 @@ async function createOrder(req, res) {
                 message: "余额不足"
             });
         }
-
+        //检查client是否存在，检查待审核订单数是否超过3
         results = await conn.queryAsync("select * from t_order where clientid=? and status=?", [clientid, ENUMS.OrderStatus.Pending]);
-        if (results.length > 3) {
+        if (results.length > 5) {
             return failedResponse(req, res, {
                 code: ENUMS.ErrCode.Failed,
                 message: "待审核订单超过三个"

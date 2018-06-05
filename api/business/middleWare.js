@@ -30,7 +30,7 @@ async function autho(req, res, next) {
 
     try {
         conn = await gDataBases["db_business"].getConnection();
-        result = await conn.queryAsync("select b.clientid,b.status from t_token a left join t_client b on a.userid=b.clientid where a.token=? and a.domain=2", [token]);
+        result = await conn.queryAsync("select b.clientid,b.status from t_token a left join t_client b on a.userid=b.clientid where a.token=? and a.domain=2 and b.status=1", [token]);
       
         if (result.length == 0) {
 

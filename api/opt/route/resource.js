@@ -81,12 +81,19 @@ router.route('/enableaccount').put(function(req,res){
     handler.enableAccount(req,res);
 })
 
+router.route('/enableclient').put(function(req,res){
+    handler.enableClient(req,res);
+})
+
 
 router.route('/finishorder').put(function(req,res){
     handler.finishOrder(req,res);
 })
 
 
+router.route('/rollbackorder').put(function(req,res){
+    handler.reqRollBackOrder(req,res);
+})
 
 
 module.exports = router;
