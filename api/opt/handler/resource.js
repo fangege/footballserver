@@ -83,7 +83,7 @@ async function createClient(req, res) {
     let form = req.body;
 
     //check
-    if (!form.clientid || !form.password || !form.communication ||!form.accountid) {
+    if (!form.clientid || !form.password || !form.communication || !form.accountid) {
         return paramInvalid(req, res);
     }
 
@@ -92,7 +92,7 @@ async function createClient(req, res) {
         password: form.password,
         createtime: moment().format('YYYY-MM-DD HH:mm:ss'),
         balance: 0,
-        accountid:form.accountid,
+        accountid: form.accountid,
         communication: form.communication,
         status: 1
     }
@@ -107,19 +107,19 @@ async function createClient(req, res) {
             return IdDup(req, res);
         }
 
-        results = await conn.queryAsync("select * from t_account where accountid=? and type=?",[form.accountid,ENUMS.AccoutType.Proxy]);
-        if(results.length==0){
-            return failedResponse(req,res,{
-                code:-1,
-                message:"代理不存在"
+        results = await conn.queryAsync("select * from t_account where accountid=? and type=?", [form.accountid, ENUMS.AccoutType.Proxy]);
+        if (results.length == 0) {
+            return failedResponse(req, res, {
+                code: -1,
+                message: "代理不存在"
             });
         }
         results = await conn.queryAsync('insert into t_client set ?', item);
-      
+
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"create client: "+results.insertId
+            accountid: req.authData.accountid,
+            remark: "create client: " + results.insertId
         })
     } catch (err) {
         console.error(err);
@@ -175,11 +175,11 @@ async function updateClient(req, res) {
             return IdNotExist(req, res);
         }
 
-        results = await conn.queryAsync("select * from t_account where accountid=? and type=?",[form.accountid,ENUMS.AccoutType.Proxy]);
-        if(results.length==0){
-            return failedResponse(req,res,{
-                code:-1,
-                message:"代理不存在"
+        results = await conn.queryAsync("select * from t_account where accountid=? and type=?", [form.accountid, ENUMS.AccoutType.Proxy]);
+        if (results.length == 0) {
+            return failedResponse(req, res, {
+                code: -1,
+                message: "代理不存在"
             });
         }
 
@@ -188,8 +188,8 @@ async function updateClient(req, res) {
 
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"update client: "+clientid
+            accountid: req.authData.accountid,
+            remark: "update client: " + clientid
         })
 
     } catch (err) {
@@ -302,8 +302,8 @@ async function rechage(req, res) {
         let paymentId = await changeUserBalance(clientid, amount, "rechage");
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"rechage paymentId: "+paymentId
+            accountid: req.authData.accountid,
+            remark: "rechage paymentId: " + paymentId
         })
         return successResponse(req, res);
     } catch (err) {
@@ -331,8 +331,8 @@ async function withDraw(req, res) {
         }
         let paymentId = await changeUserBalance(clientid, amount * -1, "withdraw");
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"withDraw paymentId: "+paymentId
+            accountid: req.authData.accountid,
+            remark: "withDraw paymentId: " + paymentId
         })
         return successResponse(req, res);
     } catch (err) {
@@ -345,7 +345,7 @@ async function withDraw(req, res) {
 
 
 //回滚订单
-async function reqRollBackOrder(req,res){
+async function reqRollBackOrder(req, res) {
 
     if (req.authData.type != ENUMS.AccoutType.Admin) {
         return permissionDeny(req, res);
@@ -363,14 +363,14 @@ async function reqRollBackOrder(req,res){
 
     let conn = null;
     let results = null;
-  
+
     try {
 
         await rollBackOrder(orderid);
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"rollback order: "+orderid
+            accountid: req.authData.accountid,
+            remark: "rollback order: " + orderid
         })
 
     } catch (err) {
@@ -409,7 +409,7 @@ async function createAccount(req, res) {
     }
 
 
-    if(!convertFunc.getAccoutTypeName(parseInt(form.type))){
+    if (!convertFunc.getAccoutTypeName(parseInt(form.type))) {
         return paramInvalid(req, res);
     }
 
@@ -433,8 +433,8 @@ async function createAccount(req, res) {
         results = await conn.queryAsync('insert into t_account set ?', item);
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"create account: "+results.insertId
+            accountid: req.authData.accountid,
+            remark: "create account: " + results.insertId
         })
     } catch (err) {
         console.error(err);
@@ -497,8 +497,8 @@ async function updateAccount(req, res) {
         await conn.queryAsync(updateSql);
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"update account: "+accountid
+            accountid: req.authData.accountid,
+            remark: "update account: " + accountid
         })
     } catch (err) {
         console.error(err);
@@ -608,35 +608,35 @@ async function getOrderList(req, res) {
     }
 
 
-    if(form.currentPage!=undefined){
+    if (form.currentPage != undefined) {
         try {
             page = parseInt(form.currentPage);
             if (isNaN(page)) {
                 page = 1;
             }
-    
+
         } catch (err) {
             page = 1;
         }
     }
-  
 
 
-    if(form.page!=undefined){
+
+    if (form.page != undefined) {
         try {
             page = parseInt(form.page);
             if (isNaN(page)) {
                 page = 1;
             }
-    
+
         } catch (err) {
             page = 1;
         }
 
     }
-  
 
-    
+
+
 
     if (!form.query) {
         form.query = "";
@@ -732,7 +732,7 @@ async function createOrder(req, res) {
     let form = req.body;
 
     //check
-    if (!form.amount || !form.clientid ||  !form.odds || !form.content || !form.whitchparty) {
+    if (!form.amount || !form.clientid || !form.odds || !form.content || !form.whitchparty) {
 
         return paramInvalid(req, res);
     }
@@ -750,14 +750,14 @@ async function createOrder(req, res) {
 
         let odds = parseInt(form.odds * 100);
 
-        if(isNaN(odds)){
-            return failedResponse(req,res,{
-                code:-1,
-                message:"赔率非法"
+        if (isNaN(odds)) {
+            return failedResponse(req, res, {
+                code: -1,
+                message: "赔率非法"
             });
         }
 
-        if(odds > ENUMS.MaxOdds * 100 || odds <=0 ){
+        if (odds > ENUMS.MaxOdds * 100 || odds <= 0) {
             return paramInvalid(req, res)
         }
 
@@ -816,8 +816,8 @@ async function createOrder(req, res) {
 
         results = await conn.queryAsync('insert into t_order set ?', item);
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"create order: "+results.insertId
+            accountid: req.authData.accountid,
+            remark: "create order: " + results.insertId
         })
     } catch (err) {
         console.error(err);
@@ -852,12 +852,12 @@ async function updateOrder(req, res) {
     }
 
 
-    try{
+    try {
         form.odds = parseFloat(form.odds);
-        if(isNaN(form.odds)){
-            throw {message:"非法"};
+        if (isNaN(form.odds)) {
+            throw { message: "非法" };
         }
-    }catch(err){
+    } catch (err) {
         return paramInvalid(req, res);
     }
 
@@ -875,10 +875,10 @@ async function updateOrder(req, res) {
     try {
         conn = await gDataBases["db_business"].getConnection();
 
-        if(item.odds < 0 || item.odds > ENUMS.MaxOdds * 100){
-            return failedResponse(req,res,{
-                code:-1,
-                message:"赔率不合法"
+        if (item.odds < 0 || item.odds > ENUMS.MaxOdds * 100) {
+            return failedResponse(req, res, {
+                code: -1,
+                message: "赔率不合法"
             });
         }
 
@@ -892,8 +892,8 @@ async function updateOrder(req, res) {
 
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"update order: "+orderid
+            accountid: req.authData.accountid,
+            remark: "update order: " + orderid
         })
     } catch (err) {
         console.error(err);
@@ -933,8 +933,8 @@ async function finishOrder(req, res) {
         await finishUserOrder(orderid, outcome);
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:"finish order: "+orderid
+            accountid: req.authData.accountid,
+            remark: "finish order: " + orderid
         })
 
     } catch (err) {
@@ -982,9 +982,9 @@ async function auditOrder(req, res) {
     let conn = null;
     let results = null;
 
- 
 
-    if(action !="reject" && action!='pass'){
+
+    if (action != "reject" && action != 'pass') {
         return paramInvalid(req, res);
     }
 
@@ -996,7 +996,7 @@ async function auditOrder(req, res) {
 
         if (action === "reject" || action === "pass") {
             results = await conn.queryAsync("select * from t_order where orderid=? and status=?", [orderid, ENUMS.OrderStatus.Pending]);
-        } 
+        }
 
         if (results.length == 0) {
             return IdNotExist(req, res);
@@ -1004,10 +1004,10 @@ async function auditOrder(req, res) {
 
         if (action === "reject") {
 
-            if(!form.remark){
+            if (!form.remark) {
                 form.remark = "";
             }
-            await conn.queryAsync("update t_order set status=?,remark=? where orderid=? and status=?", [ENUMS.OrderStatus.Rejected,form.remark, orderid, ENUMS.OrderStatus.Pending])
+            await conn.queryAsync("update t_order set status=?,remark=? where orderid=? and status=?", [ENUMS.OrderStatus.Rejected, form.remark, orderid, ENUMS.OrderStatus.Pending])
         }
 
         if (action === "pass") {
@@ -1016,8 +1016,8 @@ async function auditOrder(req, res) {
 
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:action +" order: "+orderid
+            accountid: req.authData.accountid,
+            remark: action + " order: " + orderid
         })
 
     } catch (err) {
@@ -1185,7 +1185,7 @@ async function getLogList(req, res) {
 }
 
 
-async function rollBackOrder(orderid){
+async function rollBackOrder(orderid) {
 
     let conn = null;
     let result = null;
@@ -1203,7 +1203,7 @@ async function rollBackOrder(orderid){
         let clientid = order.clientid;
 
         let makeMoney = order.makemoney;
-       
+
 
         results = await conn.queryAsync("select balance from t_client where clientid=?", [clientid]);
         if (results.length == 0) {
@@ -1213,8 +1213,6 @@ async function rollBackOrder(orderid){
         let remark = "rollback order:" + orderid;
         let amount = makeMoney * (-1);
 
-
-        console.log(balance,amount,balance+amount)
         if (makeMoney > 0) {
             await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [amount, clientid])
             let payment = {
@@ -1222,16 +1220,15 @@ async function rollBackOrder(orderid){
                 amount,
                 balance: balance + amount,
                 remark,
-                opt:ENUMS.PaymentOptType.RollBack,
+                opt: ENUMS.PaymentOptType.RollBack,
                 createtime: moment().format('YYYY-MM-DD HH:mm:ss')
             }
 
-            console.log(payment);
 
             await conn.queryAsync("insert into t_payment set ? ", [payment])
 
         }
-        await conn.queryAsync("update t_order set outcome=? , makemoney=? , status=? where orderid=?", [0, 0, ENUMS.OrderStatus.Pass,orderid]);
+        await conn.queryAsync("update t_order set outcome=? , makemoney=? , status=? where orderid=?", [0, 0, ENUMS.OrderStatus.Pass, orderid]);
         await conn.commit();
 
     } catch (err) {
@@ -1246,13 +1243,13 @@ async function rollBackOrder(orderid){
         }
     }
 
-    
+
 }
 
 
 
 async function finishUserOrder(orderid, outcome) {
-   
+
     let conn = null;
     let result = null;
     try {
@@ -1282,7 +1279,7 @@ async function finishUserOrder(orderid, outcome) {
         }
 
         if (outcome == ENUMS.OutComeStatus.HalfWin) {
-            makeMoney = (order.amount + (order.amount * order.odds) * 0.01) * 0.5;
+            makeMoney = order.amount * 0.5 + order.amount * 0.5 * (1 + order.odds * 0.01)
         }
 
         if (outcome == ENUMS.OutComeStatus.HalfLose) {
@@ -1301,16 +1298,16 @@ async function finishUserOrder(orderid, outcome) {
             await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [makeMoney, clientid])
             let payment = {
                 clientid,
-                amount:makeMoney,
+                amount: makeMoney,
                 balance: balance + makeMoney,
                 remark,
-                opt:ENUMS.PaymentOptType.MakeMoney,
+                opt: ENUMS.PaymentOptType.MakeMoney,
                 createtime: moment().format('YYYY-MM-DD HH:mm:ss')
             }
             await conn.queryAsync("insert into t_payment set ? ", [payment])
 
         }
-        await conn.queryAsync("update t_order set outcome=? , makemoney=? , status=? where orderid=?", [outcome, makeMoney, ENUMS.OrderStatus.Finished,orderid]);
+        await conn.queryAsync("update t_order set outcome=? , makemoney=? , status=? where orderid=?", [outcome, makeMoney, ENUMS.OrderStatus.Finished, orderid]);
         await conn.commit();
 
     } catch (err) {
@@ -1358,7 +1355,7 @@ async function passUserOrder(orderid) {
         let payment = {
             clientid,
             amount,
-            opt:ENUMS.PaymentOptType.Consume,
+            opt: ENUMS.PaymentOptType.Consume,
             balance: balance + amount,
             remark,
             createtime: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -1413,29 +1410,29 @@ async function changeUserBalance(clientid, amount, remark) {
 
         let payment = null;
 
-        if(amount >= 0){
+        if (amount >= 0) {
             await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [amount, clientid])
-             payment = {
+            payment = {
                 clientid,
                 amount,
-                opt:ENUMS.PaymentOptType.Rechage,
+                opt: ENUMS.PaymentOptType.Rechage,
                 balance: balance + amount,
                 remark,
                 createtime: moment().format('YYYY-MM-DD HH:mm:ss')
             }
-        }else{
+        } else {
             await conn.queryAsync("update t_client set balance=balance+(?) where clientid=?", [amount, clientid])
-             payment = {
+            payment = {
                 clientid,
                 amount,
-                opt:ENUMS.PaymentOptType.WithDraw,
+                opt: ENUMS.PaymentOptType.WithDraw,
                 balance: balance + amount,
                 remark,
                 createtime: moment().format('YYYY-MM-DD HH:mm:ss')
             }
         }
 
-       
+
         results = await conn.queryAsync("insert into t_payment set ? ", [payment])
         await conn.commit();
         return results.insertId
@@ -1456,7 +1453,7 @@ async function changeUserBalance(clientid, amount, remark) {
 
 
 
-async function enableAccount(req,res){
+async function enableAccount(req, res) {
 
 
     if (req.authData.type != ENUMS.AccoutType.Admin) {
@@ -1482,7 +1479,7 @@ async function enableAccount(req,res){
     let conn = null;
     let results = null;
 
- 
+
     let total = 0;
     try {
 
@@ -1490,25 +1487,25 @@ async function enableAccount(req,res){
         conn = await gDataBases["db_business"].getConnection();
 
 
-        results = await conn.queryAsync("select * from t_account where accountid=?",[accountid]);
-        if(results.length==0){
+        results = await conn.queryAsync("select * from t_account where accountid=?", [accountid]);
+        if (results.length == 0) {
             throw { code: -1, message: "no such accountid:" + accountid }
         }
 
-        if(accountid == req.authData.accountid){
-            throw { code: -1, message: "无法操作管理员"  }
+        if (accountid == req.authData.accountid) {
+            throw { code: -1, message: "无法操作管理员" }
         }
 
-        if(status==0){
+        if (status == 0) {
 
             await conn.queryAsync("update t_account set status=1 where accountid=?", [accountid])
-        }else{
+        } else {
             await conn.queryAsync("update t_account set status=0 where accountid=?", [accountid])
         }
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:`enable accountid + ${status?"disble":"enable"} + : + ${accountid}`
+            accountid: req.authData.accountid,
+            remark: `enable accountid + ${status ? "disble" : "enable"} + : + ${accountid}`
         });
 
     } catch (err) {
@@ -1529,7 +1526,7 @@ async function enableAccount(req,res){
 
 
 
-async function enableClient(req,res){
+async function enableClient(req, res) {
 
 
     if (req.authData.type != ENUMS.AccoutType.Admin) {
@@ -1555,7 +1552,7 @@ async function enableClient(req,res){
     let conn = null;
     let results = null;
 
- 
+
     let total = 0;
     try {
 
@@ -1563,21 +1560,21 @@ async function enableClient(req,res){
         conn = await gDataBases["db_business"].getConnection();
 
 
-        results = await conn.queryAsync("select * from t_client where clientid=?",[clientid]);
-        if(results.length==0){
+        results = await conn.queryAsync("select * from t_client where clientid=?", [clientid]);
+        if (results.length == 0) {
             throw { code: -1, message: "no such clientid:" + clientid }
         }
 
-        if(status==0){
+        if (status == 0) {
 
             await conn.queryAsync("update t_client set status=1 where clientid=?", [clientid])
-        }else{
+        } else {
             await conn.queryAsync("update t_client set status=0 where clientid=?", [clientid])
         }
 
         await writeLog({
-            accountid:req.authData.accountid,
-            remark:`enable clientid + ${status?"disble":"enable"} + : + ${clientid}`
+            accountid: req.authData.accountid,
+            remark: `enable clientid + ${status ? "disble" : "enable"} + : + ${clientid}`
         });
 
     } catch (err) {
@@ -1599,28 +1596,24 @@ async function enableClient(req,res){
 
 
 
-async function writeLog(param){
-
-
+async function writeLog(param) {
     let conn = null;
-
     let results = null;
-    if(!param.accountid || ! param.remark ){
+    if (!param.accountid || !param.remark) {
         console.error("写入数据参数错误");
         return;
     }
-
     let item = {
-        accountid:param.accountid,
-        remark:param.remark,
+        accountid: param.accountid,
+        remark: param.remark,
         createtime: moment().format('YYYY-MM-DD HH:mm:ss')
     }
 
     try {
         conn = await gDataBases["db_business"].getConnection();
-        results = await conn.queryAsync("select * from t_account where accountid=? and status=1",[param.accountid]);
+        results = await conn.queryAsync("select * from t_account where accountid=? and status=1", [param.accountid]);
 
-        if(results.length == 0){
+        if (results.length == 0) {
             console.error("用户名查询不到");
             return;
         }
@@ -1630,13 +1623,126 @@ async function writeLog(param){
     } catch (err) {
         console.error(err);
         console.error("日志写入失败");
-    
+
     } finally {
         if (conn != null) {
             conn.release();
         }
     }
 
+}
+
+
+
+async function getRunTimeStatList(req, res) {
+    if (req.authData.type != ENUMS.AccoutType.Admin) {
+        return permissionDeny(req, res);
+    }
+    let form = req.query;
+    let conn = null;
+    let results = null;
+    let whereSql = "";
+    let whereClauses = [];
+    let whereParams = [];
+    try {
+        let sql = "";
+        if (form.content) {
+            whereClauses.push(" content=? ");
+            whereParams.push(form.content);
+        }
+
+        if (form.whitchparty) {
+            whereClauses.push(" whitchparty=? ");
+            whereParams.push(form.whitchparty);
+        }
+
+        whereClauses.push(" status=? ");
+        whereParams.push(3);
+
+        if (whereClauses.length > 0) {
+            whereSql = "where " + whereClauses.join(" and ");
+        }
+
+        conn = await gDataBases["db_business"].getConnection();
+        results = await conn.queryAsync("select content,whitchparty ,count(*) as total,sum(amount) as totalmoney from t_order " + whereSql + " group by content,whitchparty  ", whereParams)
+
+
+    } catch (err) {
+        console.error(err);
+        return serverError(req, res);
+
+    } finally {
+        if (conn != null) {
+            conn.release();
+        }
+    }
+    successResponse(req, res, {
+        list: results
+    });
+
+
+
+}
+
+
+//获取结算订单统计
+async function getOrderStatList(req, res) {
+    if (req.authData.type != ENUMS.AccoutType.Admin && req.authData.type != ENUMS.AccoutType.Proxy) {
+        return permissionDeny(req, res);
+    }
+    let form = req.query;
+    let conn = null;
+    let results = null;
+    let action = 0;
+    try {
+        let sql = "";
+        try {
+            action = parseInt(form.action);
+            if (isNaN(action)) {
+                action = 0;
+            }
+
+            if (action > 3 || action < 0) {
+                action = 0;
+            }
+        } catch (err) {
+
+        }
+
+        let sqls = [];
+        if (req.authData.type == ENUMS.AccoutType.Proxy) {
+
+            sqls = [
+                `select count(*) as total,'' as date ,sum(a.makemoney-a.amount) as clientmakemoney from t_order a left join t_client b on a.clientid=b.clientid where a.status=4 and b.accountid='${req.authData.accountid}'`,
+                `select count(DATE(a.createtime)) as total,DATE(a.createtime) as date,sum(a.makemoney-a.amount) as clientmakemoney from t_order a left join t_client b on a.clientid=b.clientid where a.status=4 and b.accountid='${req.authData.accountid}' group by DATE(a.createtime)`,
+                `select count(*) as total,'' as date,sum(abs(a.makemoney-a.amount)) as clientmakemoney from t_order a left join t_client b on a.clientid=b.clientid where a.status=4 and b.accountid='${req.authData.accountid}'`,
+                `select count(DATE(a.createtime)) as total,DATE(a.createtime) as date,sum(abs(a.makemoney-a.amount)) as clientmakemoney from t_order a left join t_client b on a.clientid=b.clientid where a.status=4 and b.accountid='${req.authData.accountid}' group by DATE(a.createtime)`,
+            ]
+        } else {
+
+            sqls = [
+                "select count(*) as total,'' as date,sum(makemoney-amount) as clientmakemoney from t_order where status=4",
+                "select count(DATE(createtime)) as total,DATE(createtime) as date,sum(makemoney-amount) as clientmakemoney from t_order where status = 4 group by DATE(createtime)",
+                "select count(*) as total,'' as date,sum(abs(makemoney-amount)) as clientmakemoney from t_order where status=4",
+                "select count(DATE(createtime)) as total,DATE(createtime) as date,sum(abs(makemoney-amount)) as clientmakemoney from t_order where status = 4 group by DATE(createtime)"
+            ]
+
+        }
+        conn = await gDataBases["db_business"].getConnection();
+        results = await conn.queryAsync(sqls[action]);
+    } catch (err) {
+        console.error(err);
+        return serverError(req, res);
+
+    } finally {
+        if (conn != null) {
+            conn.release();
+        }
+    }
+    successResponse(req, res, {
+        list: results,
+        action,
+    });
 }
 
 
@@ -1668,6 +1774,8 @@ module.exports = {
 
     getOrderList,
 
+    getOrderStatList,
+
     createOrder,
 
     updateOrder,
@@ -1676,6 +1784,7 @@ module.exports = {
 
     enableAccount,
     enableClient,
-    reqRollBackOrder
+    reqRollBackOrder,
+    getRunTimeStatList
 
 }

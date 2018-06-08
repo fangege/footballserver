@@ -63,6 +63,16 @@ router.route('/log').get(function(req,res){
 });
 
 
+router.route('/orderstat').get(function(req,res){
+    handler.getOrderStatList(req,res);
+});
+
+
+router.route('/runtimeorder').get(function(req,res){
+    handler.getRunTimeStatList(req,res);
+});
+
+
 router.route('/rechage').put(function(req,res){
     handler.rechage(req,res);
 });
