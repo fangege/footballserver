@@ -4,7 +4,7 @@
 const ENUM = {
 
 
-    MaxOdds: 100,
+    MaxOdds: 1000,
 
     BusinessPath:"https://static-1255551836.cos.ap-chengdu.myqcloud.com/business.html",
     OptPath:"https://s3-ap-southeast-1.amazonaws.com/aws-business-static/resource/opt.html",

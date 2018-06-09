@@ -209,6 +209,10 @@ async function createOrder(req, res) {
             });
         }
 
+        if (odds > ENUMS.MaxOdds * 100 || odds <= 0) {
+            return paramInvalid(req, res)
+        }
+
         let item = {
             amount,
             content,
