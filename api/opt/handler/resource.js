@@ -161,7 +161,7 @@ async function updateClient(req, res) {
 
 
     if (form.accountid) {
-        item['password'] = form.accountid;
+        item['accountid'] = form.accountid;
     }
 
 
