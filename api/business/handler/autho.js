@@ -80,7 +80,7 @@ async function login(req, res) {
         result = await conn.queryAsync("select * from t_token where userid=? and expire_time>now() and domain=2 order by expire_time", [userid]);
         let tokenSql = "";
 
-        if (result.length > 3) {
+        if (result.length > 0) {
             tokenSql = `update t_token set token =?,expire_time=?,userid = ? where domain=2 and token='${result[0].token}'`
 
         } else {

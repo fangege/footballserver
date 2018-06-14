@@ -635,13 +635,9 @@ async function getOrderList(req, res) {
 
     }
 
-
-
-
     if (!form.query) {
         form.query = "";
     }
-
 
     let conn = null;
     let results = null;
@@ -651,6 +647,7 @@ async function getOrderList(req, res) {
     let whereSql = "";
     let whereClauses = [];
     let whereParams = [];
+
 
     if (form.no) {
         whereClauses.push(" a.orderid=? ");
@@ -667,6 +664,9 @@ async function getOrderList(req, res) {
         whereParams.push(form.whitchparty);
     }
 
+
+
+
     if (form.status != undefined) {
         whereClauses.push(" a.status=? ");
         whereParams.push(form.status);
@@ -676,6 +676,22 @@ async function getOrderList(req, res) {
     if (req.authData.type == ENUMS.AccoutType.Proxy) {
         whereClauses.push(" b.accountid=? ");
         whereParams.push(req.authData.accountid);
+    }else{
+        if (form.accountid) {
+            whereClauses.push(" b.accountid=? ");
+            whereParams.push(form.accountid);
+        }
+    }
+
+    if (form.clientid) {
+        whereClauses.push(" a.clientid=? ");
+        whereParams.push(form.clientid);
+    }
+
+
+    if (form.createtime) {
+        whereClauses.push(" DATE_FORMAT(a.createtime,'%Y-%m-%d')=? ");
+        whereParams.push(form.createtime);
     }
 
 
