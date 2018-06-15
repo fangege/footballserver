@@ -201,7 +201,8 @@ async function createOrder(req, res) {
         }
         let content = form.content;
         let whitchparty = form.whitchparty;
-        let odds = parseInt(form.odds * 100);
+        //let odds = parseInt(form.odds * 100);
+        let odds = parseInt(parseFloat(form.odds) * 100);
         if (isNaN(odds)) {
             return failedResponse(req, res, {
                 code: -1,

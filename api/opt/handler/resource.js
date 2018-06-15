@@ -451,16 +451,12 @@ async function createAccount(req, res) {
 
 async function updateAccount(req, res) {
 
-
-
-    if (req.authData.type != ENUMS.AccoutType.Admin) {
+    if (req.authData.type != ENUMS.AccoutType.Admin && (req.authData.type == ENUMS.AccoutType.Proxy && req.body.accountid == req.authData.accountid) == false) {
         return permissionDeny(req, res);
 
     }
     let form = req.body;
     let accountid = form.accountid;
-
-
 
     //check
     if (!accountid || (form.type == undefined && !form.communication && !form.password)) {
@@ -477,10 +473,12 @@ async function updateAccount(req, res) {
         item['password'] = form.password;
     }
 
-    if (form.type != undefined) {
-        item['type'] = form.type;
+    if(req.authData.type == ENUMS.AccoutType.Admin){
+        if (form.type != undefined) {
+            item['type'] = form.type;
+        }
     }
-
+  
 
     let conn = null;
     let results = null;
@@ -517,7 +515,7 @@ async function getAccountList(req, res) {
 
 
 
-    if (req.authData.type != ENUMS.AccoutType.Admin) {
+    if (req.authData.type != ENUMS.AccoutType.Admin && req.authData.type != ENUMS.AccoutType.Proxy) {
 
         return permissionDeny(req, res);
     }
@@ -543,10 +541,22 @@ async function getAccountList(req, res) {
     let whereClauses = [];
     let whereParams = [];
 
-    if (form.no) {
-        whereClauses.push(" accountid=? ");
-        whereParams.push(form.no);
-    }
+  
+
+        if (req.authData.type == ENUMS.AccoutType.Proxy){
+
+            whereClauses.push(" accountid=? ");
+            whereParams.push(req.authData.accountid);
+          
+        }else{
+            if (form.no) {
+                whereClauses.push(" accountid=? ");
+                whereParams.push(form.no);
+              
+            }
+
+        }
+ 
 
     if (whereClauses.length > 0) {
         whereSql = "where " + whereClauses.join(" and ");
@@ -746,7 +756,6 @@ async function createOrder(req, res) {
 
 
     let form = req.body;
-
     //check
     if (!form.amount || !form.clientid || !form.odds || !form.content || !form.whitchparty) {
 
@@ -763,8 +772,7 @@ async function createOrder(req, res) {
             return paramInvalid(req, res)
         }
 
-
-        let odds = parseInt(form.odds * 100);
+        let odds = parseInt(parseFloat(form.odds) * 100);
 
         if (isNaN(odds)) {
             return failedResponse(req, res, {
